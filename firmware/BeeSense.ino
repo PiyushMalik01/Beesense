@@ -30,12 +30,12 @@
 #define MIC_ADC_CHANNEL ADC1_CHANNEL_6  // GPIO34
 
 // WiFi (station mode — connects to your network)
-const char* WIFI_SSID = "YOUR_WIFI_SSID";
-const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID = "EACCESS";
+const char* WIFI_PASS = "hostelnet";
 
 // Cloud API (Cloudflare Worker endpoint for R2 storage)
-const char* API_ENDPOINT = "https://beesense-api.YOUR_SUBDOMAIN.workers.dev";
-const char* API_KEY = "YOUR_SECRET_API_KEY";
+const char* API_ENDPOINT = "https://beesense-api.beesense.workers.dev";
+const char* API_KEY = "beesense-secret-2026";
 const char* DEVICE_ID = "beesense-01";
 
 // NTP
