@@ -1,0 +1,14 @@
+name = "beesense-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# R2 bucket binding — create bucket first:
+#   npx wrangler r2 bucket create beesense-data
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "beesense-data"
+
+# Secret API key — set via:
+#   npx wrangler secret put API_KEY
+# Then enter your chosen key when prompted.
+# Use the same key in the ESP32 firmware (API_KEY constant).

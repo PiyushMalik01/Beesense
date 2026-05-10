@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Environment files
+.env.local
+.env*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# Build
+dist/
+*.tsbuildinfo
+
+# Debug
+npm-debug.log*
