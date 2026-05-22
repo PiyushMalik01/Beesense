@@ -321,12 +321,51 @@ bool uploadSensorData(String timestamp, float temp, float humidity,
   return false;
 }
 
+String jsonEscape(const String &s) {
+  String out;
+  out.reserve(s.length() + 10);
+  for (unsigned int i = 0; i < s.length(); i++) {
+    char c = s.charAt(i);
+    switch (c) {
+      case '\\': out += "\\\\"; break;
+      case '"':  out += "\\\""; break;
+      case '\n': out += "\\n"; break;
+      case '\r': out += "\\r"; break;
+      case '\t': out += "\\t"; break;
+      default:
+        if (c < 0x20) out += ' ';
+        else out += c;
+    }
+  }
+  return out;
+}
+
 void uploadLogs() {
   if (WiFi.status() != WL_CONNECTED || logCount == 0) return;
   if (ESP.getFreeHeap() < 50000) return;
 
+  int start = (logCount < LOG_BUFFER_SIZE) ? 0 : logHead;
+  int count = min(logCount, LOG_BUFFER_SIZE);
+
+  // Send only the last 30 lines to keep payload small
+  int sendCount = min(count, 30);
+  int sendStart = (start + count - sendCount) % LOG_BUFFER_SIZE;
+
+  String json = "{\"device_id\":\"" + String(DEVICE_ID) + "\",\"lines\":[";
+  for (int i = 0; i < sendCount; i++) {
+    int idx = (sendStart + i) % LOG_BUFFER_SIZE;
+    if (i > 0) json += ",";
+    json += "\"" + jsonEscape(logBuffer[idx]) + "\"";
+  }
+  json += "]}";
+
+  Serial.println("[LOGS] Sending " + String(sendCount) + " lines (" + String(json.length()) + " bytes)...");
+
   WiFiClientSecure *client = new WiFiClientSecure();
-  if (!client) return;
+  if (!client) {
+    Serial.println("[LOGS] TLS alloc failed");
+    return;
+  }
   client->setInsecure();
   client->setTimeout(15);
 
@@ -336,21 +375,9 @@ void uploadLogs() {
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(15000);
 
-  String json = "{\"device_id\":\"" + String(DEVICE_ID) + "\",\"lines\":[";
-  int start = (logCount < LOG_BUFFER_SIZE) ? 0 : logHead;
-  int count = min(logCount, LOG_BUFFER_SIZE);
-  for (int i = 0; i < count; i++) {
-    int idx = (start + i) % LOG_BUFFER_SIZE;
-    if (i > 0) json += ",";
-    String escaped = logBuffer[idx];
-    escaped.replace("\\", "\\\\");
-    escaped.replace("\"", "\\\"");
-    json += "\"" + escaped + "\"";
-  }
-  json += "]}";
-
   int code = http.POST(json);
-  Serial.println("[LOGS] Upload: HTTP " + String(code) + " (" + String(count) + " lines)");
+  Serial.println("[LOGS] HTTP " + String(code));
+
   http.end();
   client->stop();
   delete client;
